@@ -1,0 +1,5391 @@
+<!DOCTYPE html>
+<html lang="sr">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+<title>Neonski Odboj</title>
+
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+
+html,body{
+
+width:100%;
+height:100dvh;
+
+overflow:hidden;
+
+background:#000;
+
+font-family:Arial,sans-serif;
+
+touch-action:none;
+
+user-select:none;
+-webkit-user-select:none;
+-moz-user-select:none;
+-ms-user-select:none;
+
+}
+
+
+#game{
+
+width:100vw;
+height:100dvh;
+
+position:relative;
+
+}
+
+
+
+canvas{
+
+position:absolute;
+
+width:100%;
+height:100%;
+
+background:
+radial-gradient(circle,#10194a,#000);
+
+}
+
+
+
+
+
+.screen{
+
+position:absolute;
+
+top:50%;
+left:50%;
+
+transform:translate(-50%,-50%);
+
+width:90%;
+
+max-width:400px;
+
+text-align:center;
+
+color:white;
+
+z-index:10;
+
+}
+
+
+
+
+h1{
+
+font-size:clamp(40px,12vw,80px);
+
+color:#00ffff;
+
+text-shadow:
+
+0 0 10px #00ffff,
+0 0 40px #0088ff,
+0 0 80px #0044ff;
+
+}
+
+
+
+
+button{
+
+width:80%;
+
+padding:15px;
+
+margin:10px;
+
+border-radius:40px;
+
+background:#020b25;
+
+border:2px solid #00ffff;
+
+color:white;
+
+font-size:20px;
+
+box-shadow:
+
+0 0 20px #00ffff;
+
+}
+
+
+
+button:active{
+
+transform:scale(.95);
+
+}
+
+
+
+
+
+#hud{
+
+position:absolute;
+
+top:10px;
+
+left:10px;
+
+right:10px;
+
+display:none;
+
+justify-content:space-between;
+
+color:white;
+
+font-size:clamp(12px,3.5vw,18px);
+
+z-index:5;
+
+}
+
+
+
+
+
+.panel{
+
+background:#05051c;
+
+padding:30px;
+
+border-radius:20px;
+
+border:2px solid #00ffff;
+
+box-shadow:
+
+0 0 30px #00ffff;
+
+}
+
+
+
+
+
+
+#notify{
+
+position:absolute;
+
+top:30px;
+
+left:50%;
+
+transform:translate(-50%,-150px);
+
+background:#05051c;
+
+border:2px solid #00ffff;
+
+border-radius:20px;
+
+padding:15px 25px;
+
+color:white;
+
+font-size:18px;
+
+text-align:center;
+
+z-index:20;
+
+transition:.4s;
+
+box-shadow:0 0 30px #00ffff;
+
+opacity:0;
+
+}
+
+
+
+#notify.show{
+
+transform:translate(-50%,0);
+
+opacity:1;
+
+}
+
+
+
+
+
+
+
+#bossBar{
+
+display:none;
+
+position:absolute;
+
+top:65px;
+
+left:50%;
+
+transform:translateX(-50%);
+
+width:70%;
+
+height:15px;
+
+border:2px solid white;
+
+border-radius:20px;
+
+overflow:hidden;
+
+z-index:6;
+
+}
+
+
+
+#bossLife{
+
+height:100%;
+
+width:100%;
+
+background:#ff0033;
+
+}
+
+
+
+@media (min-width:800px){
+
+#hud{
+    font-size:24px;
+}
+
+}
+
+
+#gameover button,
+#win button{
+    display:block;
+    margin:10px auto;
+}
+
+
+</style>
+</head>
+
+
+<body>
+
+
+<div id="game">
+
+
+<canvas id="canvas"></canvas>
+
+
+
+<div id="notify"></div>
+
+
+
+<div id="bossBar">
+
+<div id="bossLife"></div>
+
+</div>
+
+
+
+
+
+<div id="menu" class="screen">
+
+
+<h1>
+NEONSKI<br>
+ODBOJ
+</h1>
+
+
+<p>
+Putanja svetlosti
+</p>
+
+
+
+<button id="play">
+▶ IGRAJ
+</button>
+
+
+
+<button id="settingsBtn">
+⚙ ZVUK
+</button>
+
+
+<button id="recordBtn">
+🏆 REKORD
+</button>
+
+<button id="helpBtn">
+❓ UPUTSTVO
+</button>
+
+</div>
+
+
+<div id="help" class="screen panel" style="display:none">
+
+<h2>
+❓ UPUTSTVO
+</h2>
+
+<p>
+🎮 Cilj igre:<br>
+Odbijaj lopticu i uništavaj mete.<br><br>
+
+⭐ Sakupljaj poene i povećavaj combo.<br>
+❤️ Dobijaš dodatne živote na svakih 5000 poena.<br>
+⚫ Izbegavaj crne rupe.<br>
+🛡 Klik blizu lopte aktivira štit i ubrzava loptu.<br>
+🔵 Uništi bossove svakih 5 talasa.<br><br>
+
+🌊 Cilj je stići do 30. talasa.<br><br>
+
+Autor:<br>
+<b>mujagi77</b>
+</p>
+
+<button id="closeHelp">
+⬅ NAZAD
+</button>
+
+</div>
+
+
+
+
+
+
+
+<div id="hud">
+
+
+<div>
+❤️ <span id="life">3</span>
+</div>
+
+
+<div>
+⭐ <span id="score">0</span>
+</div>
+
+
+<div>
+🔥 <span id="combo">x1</span>
+</div>
+
+
+<div>
+🌊 <span id="wave">1</span>
+</div>
+
+<div style="min-width: 50px;">💠 <span id="reflectorCount">0/10</span></div>
+
+
+</div>
+
+
+
+
+
+
+
+<div id="gameover" class="screen panel" style="display:none">
+
+
+<h2>
+KRAJ IGRE
+</h2>
+
+
+<p id="finalScore"></p>
+
+
+<button id="continueBtn">
+▶ Nastavi
+</button>
+
+
+
+<button id="restart">
+🔄 Nova igra
+</button>
+
+
+<button id="menuBtn">
+🏠 Meni
+</button>
+
+
+</div>
+
+
+
+
+
+
+
+<div id="win" class="screen panel" style="display:none">
+
+
+<h2>
+🏆 POBEDA!
+</h2>
+
+
+<p id="winScore"></p>
+
+
+
+<button id="winRestart">
+🔄 Igra ponovo
+</button>
+
+
+<button id="winMenu">
+🏠 Meni
+</button>
+
+
+</div>
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+
+<script>
+
+
+"use strict";
+
+
+
+
+// =============================
+// CANVAS
+// =============================
+
+
+const canvas =
+document.getElementById("canvas");
+
+
+const ctx =
+canvas.getContext("2d");
+
+
+
+
+function resize(){
+
+canvas.width = innerWidth;
+canvas.height = innerHeight;
+
+}
+
+
+
+resize();
+
+
+
+window.addEventListener(
+"resize",
+resize
+);
+
+
+let desktopScale = 1;
+
+let nebulae=[];
+
+for(let i=0;i<8;i++){
+
+nebulae.push({
+
+x:Math.random()*innerWidth,
+y:Math.random()*innerHeight,
+r:100+Math.random()*200,
+a:0.03+Math.random()*0.04
+
+});
+
+}
+
+function updateDesktopScale(){
+
+    if(innerWidth >= 800){
+
+        desktopScale = Math.min(
+            innerWidth / 1280,
+            1.5
+        );
+
+    }else{
+
+        desktopScale = 1;
+
+    }
+
+}
+
+updateDesktopScale();
+
+window.addEventListener(
+"resize",
+updateDesktopScale
+);
+
+
+
+
+
+
+// =============================
+// SAVE / LOAD
+// =============================
+
+
+function save(key,value){
+
+
+localStorage.setItem(
+
+key,
+
+JSON.stringify(value)
+
+);
+
+
+
+}
+
+
+
+function load(key,def){
+
+
+let v =
+localStorage.getItem(key);
+
+
+
+return v ?
+JSON.parse(v):
+def;
+
+
+
+}
+
+
+
+
+
+
+// =============================
+// OBAVEŠTENJA
+// =============================
+
+
+function notify(text){
+
+
+
+let n =
+document.getElementById("notify");
+
+
+
+n.innerHTML=text;
+
+
+
+n.classList.add("show");
+
+
+
+setTimeout(()=>{
+
+
+n.classList.remove("show");
+
+
+},2200);
+
+
+
+}
+
+// =============================
+// ZVUK
+// =============================
+
+
+let soundEnabled =
+load("sound",true);
+
+
+
+let audioCtx=null;
+
+
+
+
+function beep(freq,time,type="sine"){
+
+
+
+if(!soundEnabled)
+
+return;
+
+
+
+if(!audioCtx)
+
+
+audioCtx =
+new(
+window.AudioContext ||
+window.webkitAudioContext
+);
+
+
+
+let o =
+audioCtx.createOscillator();
+
+
+
+let g =
+audioCtx.createGain();
+
+
+
+o.type=type;
+
+
+o.frequency.value=freq;
+
+
+
+g.gain.value=0.05;
+
+
+
+o.connect(g);
+
+
+g.connect(
+audioCtx.destination
+);
+
+
+
+o.start();
+
+
+o.stop(
+audioCtx.currentTime+time
+);
+
+
+
+}
+
+
+
+
+
+
+
+// =============================
+// KONTROLA
+// =============================
+
+
+let input={
+
+x:0,
+
+y:0,
+
+click:false
+
+};
+
+
+
+
+canvas.addEventListener(
+"pointerdown",
+e=>{
+
+
+input.x=e.clientX;
+
+
+input.y=e.clientY;
+
+
+input.click=true;
+
+
+}
+);
+
+
+window.addEventListener("keydown", e=>{
+
+    if(e.key.toLowerCase()=="p"){
+
+        if(!playing)
+            return;
+
+        paused=!paused;
+
+        notify(
+            paused ?
+            "⏸ PAUZA":
+            "▶ NASTAVAK"
+        );
+
+    }
+
+});
+
+
+
+
+
+
+// =============================
+// VARIJABLE IGRE
+// =============================
+
+
+let playing=false;
+
+
+let paused=false;
+
+
+let continueUsed=false;
+
+
+
+let savedGame=null;
+
+
+
+let score=0;
+
+
+let lives=3;
+
+
+let combo=1;
+
+
+let wave=1;
+
+
+
+
+
+let nextLifeScore=5000;
+
+
+
+let targets=[];
+
+
+let holes=[];
+
+
+let reflectors=[];
+
+
+let particles=[];
+
+
+
+let boss=null;
+
+
+let enemyBalls=[];
+
+
+
+let shieldTime=0;
+
+
+
+let lastBossWave=0;
+
+
+
+const MAX_LIVES=5;
+
+
+
+const MAX_WAVE=30;
+
+
+
+
+
+
+
+// =============================
+// ŽIVOT PREKO POENA
+// =============================
+
+
+function checkScoreLife(){
+
+
+
+if(score>=nextLifeScore){
+
+
+
+if(lives<MAX_LIVES){
+
+
+
+lives++;
+
+
+
+document.getElementById("life")
+.innerHTML=lives;
+
+
+
+notify(
+"⭐ "+nextLifeScore+
+" POENA<br>❤️ DODATNI ŽIVOT"
+);
+
+
+
+beep(
+1000,
+0.15,
+"triangle"
+);
+
+
+
+}
+
+else{
+
+
+
+notify(
+"⭐ "+nextLifeScore+
+" POENA<br>❤️ Maksimum života"
+);
+
+
+
+}
+
+
+
+nextLifeScore+=5000;
+
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+
+// =============================
+// NAGRADA ZA BOSSA
+// =============================
+
+
+function giveBossReward(){
+
+
+
+score+=1000;
+
+
+
+document.getElementById("score")
+.innerHTML=score;
+
+
+
+if(lives<MAX_LIVES){
+
+
+
+lives++;
+
+
+
+document.getElementById("life")
+.innerHTML=lives;
+
+
+
+notify(
+"⚡ BOSS UNIŠTEN<br>❤️ +1 ŽIVOT"
+);
+
+
+
+}
+
+else{
+
+
+notify(
+"⚡ BOSS UNIŠTEN<br>⭐ +1000"
+);
+
+
+
+}
+
+
+
+checkScoreLife();
+
+
+
+}
+
+// =============================
+// LOPTICA
+// =============================
+
+
+function findSafeSpawn(){
+
+    let x = innerWidth / 2;
+    let y = innerHeight / 2;
+
+
+    for(let i=0;i<50;i++){
+
+        let safe = true;
+
+
+        holes.forEach(h=>{
+
+            let dx = x - h.x;
+            let dy = y - h.y;
+
+            let d = Math.sqrt(
+                dx*dx + dy*dy
+            );
+
+
+            if(d < h.radius + 80){
+
+                safe = false;
+
+            }
+
+        });
+
+
+        if(safe){
+
+            return {
+                x:x,
+                y:y
+            };
+
+        }
+
+
+        x = Math.random()*innerWidth;
+        y = Math.random()*innerHeight;
+
+    }
+
+
+    return {
+        x:innerWidth/2,
+        y:innerHeight/2
+    };
+
+}
+
+
+class Ball{
+
+
+constructor(){
+
+
+this.radius=10*desktopScale;
+
+
+this.speed = innerWidth >= 800 ? 5 * desktopScale : 4 * desktopScale;
+
+
+this.reset();
+
+
+this.trail=[];
+
+
+// Spiralno usisavanje
+this.absorbing = false;
+this.absorbHole = null;
+this.absorbAngle = 0;
+this.absorbRadius = 0;
+this.scale = 1;
+
+
+}
+
+
+
+
+
+reset(){
+
+
+let pos = findSafeSpawn();
+
+
+this.x = pos.x;
+this.y = pos.y;
+
+
+
+let a;
+
+do{
+
+    a = Math.random() * Math.PI * 2;
+
+    let testX =
+    this.x + Math.cos(a) * 200;
+
+    let testY =
+    this.y + Math.sin(a) * 200;
+
+    let safe = true;
+
+
+    holes.forEach(h=>{
+
+        let dx = testX - h.x;
+        let dy = testY - h.y;
+
+        let d = Math.sqrt(
+            dx*dx + dy*dy
+        );
+
+
+        if(d < h.radius + 50){
+
+            safe = false;
+
+        }
+
+    });
+
+
+    if(safe)
+        break;
+
+
+}while(true);
+
+
+
+this.dx=
+Math.cos(a)*
+this.speed;
+
+
+
+this.dy=
+Math.sin(a)*
+this.speed;
+
+
+
+this.trail=[];
+
+
+
+}
+
+
+
+
+
+update(){
+
+
+if(this.absorbing){
+
+    this.absorbAngle += 0.25;
+
+    this.absorbRadius *= 0.97;
+
+    this.scale *= 0.98;
+
+    this.x =
+    this.absorbHole.x +
+    Math.cos(this.absorbAngle) *
+    this.absorbRadius;
+
+    this.y =
+    this.absorbHole.y +
+    Math.sin(this.absorbAngle) *
+    this.absorbRadius;
+
+    this.trail.push({
+    x:this.x,
+    y:this.y
+});
+
+    if(this.trail.length > 25)
+    this.trail.shift();
+
+
+    if(this.absorbRadius < 3){
+
+    this.absorbing = false;
+    this.scale = 1;
+
+    lives--;
+
+    document.getElementById("life")
+    .innerHTML=lives;
+
+    notify("⚫ CRNA RUPA!");
+
+    beep(120,0.5,"sawtooth");
+
+    this.reset();
+
+    if(lives<=0)
+        endGame();
+
+}
+
+    return;
+
+}
+
+
+
+this.x+=this.dx;
+
+
+this.y+=this.dy;
+
+
+
+
+
+
+// ODBIJANJE OD IVICA
+// sa promenom ugla
+
+
+
+if(this.x-this.radius<=0){
+
+
+
+this.x=this.radius;
+
+
+this.dx=Math.abs(this.dx);
+
+
+this.dy+=(Math.random()-0.5)*2;
+
+
+
+beep(300,0.04);
+
+
+
+}
+
+
+
+
+
+if(this.x+this.radius>=innerWidth){
+
+
+
+this.x=
+innerWidth-this.radius;
+
+
+this.dx=-Math.abs(this.dx);
+
+
+this.dy+=(Math.random()-0.5)*2;
+
+
+
+beep(300,0.04);
+
+
+
+}
+
+
+
+
+
+if(this.y-this.radius<=0){
+
+
+
+this.y=this.radius;
+
+
+this.dy=Math.abs(this.dy);
+
+
+this.dx+=(Math.random()-0.5)*2;
+
+
+
+beep(300,0.04);
+
+
+
+}
+
+
+
+
+
+if(this.y+this.radius>=innerHeight){
+
+
+
+this.y=
+innerHeight-this.radius;
+
+
+this.dy=-Math.abs(this.dy);
+
+
+this.dx+=(Math.random()-0.5)*2;
+
+
+
+beep(300,0.04);
+
+
+
+}
+
+
+
+
+
+
+
+// sprečava ravnu beskonačnu putanju
+
+
+
+let min=2;
+
+
+
+if(Math.abs(this.dx)<min)
+
+this.dx=
+this.dx>=0?
+min:-min;
+
+
+
+if(Math.abs(this.dy)<min)
+
+this.dy=
+this.dy>=0?
+min:-min;
+
+
+
+
+
+
+
+// vraća brzinu
+
+
+
+let s=
+Math.sqrt(
+this.dx*this.dx+
+this.dy*this.dy
+);
+
+
+
+this.dx=
+this.dx/s*
+this.speed;
+
+
+
+this.dy=
+this.dy/s*
+this.speed;
+
+
+
+
+
+
+
+this.trail.push({
+
+x:this.x,
+
+y:this.y
+
+});
+
+
+
+if(this.trail.length > (innerWidth >= 800 ? 60 : 40))
+
+this.trail.shift();
+
+
+
+}
+
+
+
+
+
+
+
+draw(){
+
+
+
+for(let i=0;i<this.trail.length;i++){
+
+
+
+let p=this.trail[i];
+
+
+
+ctx.beginPath();
+
+
+
+ctx.arc(
+
+p.x,
+
+p.y,
+
+i/4 * (this.absorbing ? 0.4 : 1),
+
+0,
+
+Math.PI*2
+
+);
+
+
+
+ctx.fillStyle=
+"rgba(0,255,255,"+
+(i/this.trail.length)+")";
+
+
+
+ctx.fill();
+
+
+
+}
+
+
+
+
+
+
+ctx.beginPath();
+
+
+
+ctx.arc(
+
+this.x,
+
+this.y,
+
+this.radius * this.scale,
+
+0,
+
+Math.PI*2
+
+);
+
+
+
+ctx.fillStyle="white";
+
+
+ctx.shadowBlur=30;
+
+
+ctx.shadowColor="#00ffff";
+
+
+ctx.fill();
+
+
+ctx.shadowBlur=0;
+
+
+
+}
+
+
+
+
+boost(){
+
+
+
+this.dx*=2;
+
+
+this.dy*=2;
+
+
+
+setTimeout(()=>{
+
+
+
+let s=
+Math.sqrt(
+this.dx*this.dx+
+this.dy*this.dy
+);
+
+
+
+this.dx=
+this.dx/s*
+this.speed;
+
+
+
+this.dy=
+this.dy/s*
+this.speed;
+
+
+
+},1000);
+
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+const ball =
+new Ball();
+
+
+
+
+
+
+
+
+
+// =============================
+// REFLEKTOR
+// =============================
+
+
+
+class Reflector{
+
+
+constructor(x,y){
+
+
+this.x=x;
+
+
+this.y=y;
+
+
+this.radius=35*desktopScale;
+
+
+this.life=500;
+
+
+this.hitFlash=0;
+
+
+this.pulse=0;
+
+
+
+}
+
+
+
+
+
+update(){
+
+this.life--;
+
+this.pulse+=0.08;
+
+if(this.hitFlash>0)
+this.hitFlash--;
+
+}
+
+
+
+
+
+
+draw(){
+
+
+
+ctx.beginPath();
+
+
+
+ctx.arc(
+this.x,
+this.y,
+this.radius + this.hitFlash + Math.sin(this.pulse)*3,
+0,
+Math.PI*2
+);
+
+
+
+ctx.strokeStyle="#008cff";
+
+
+ctx.lineWidth=4;
+
+
+ctx.shadowBlur=30;
+
+
+ctx.shadowColor="#008cff";
+
+
+ctx.stroke();
+
+
+ctx.shadowBlur=0;
+
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+
+function checkReflectors(){
+
+
+if(ball.absorbing)
+    return;
+
+
+
+reflectors.forEach(r=>{
+
+
+
+let dx=
+ball.x-r.x;
+
+
+
+let dy=
+ball.y-r.y;
+
+
+
+let d=
+Math.sqrt(
+dx*dx+dy*dy
+);
+
+
+
+
+if(
+d<
+ball.radius+r.radius
+){
+
+
+
+let nx=dx/d;
+
+
+let ny=dy/d;
+
+
+
+let dot=
+ball.dx*nx+
+ball.dy*ny;
+
+
+
+ball.dx -=
+2*dot*nx;
+
+
+
+ball.dy -=
+2*dot*ny;
+
+
+
+ball.x=
+r.x+
+nx*
+(r.radius+ball.radius);
+
+
+
+ball.y=
+r.y+
+ny*
+(r.radius+ball.radius);
+
+
+
+beep(
+600,
+0.08
+);
+
+
+r.hitFlash=10;
+
+
+
+}
+
+
+
+});
+
+
+
+}
+
+// =============================
+// KONTROLA KLIKA
+// =============================
+
+
+function handleInput(){
+
+
+
+if(!input.click)
+
+return;
+
+
+if(ball.absorbing){
+
+    input.click = false;
+    return;
+
+}
+
+
+
+
+let dx=
+input.x-ball.x;
+
+
+let dy=
+input.y-ball.y;
+
+
+
+let d=
+Math.sqrt(
+dx*dx+dy*dy
+);
+
+
+
+
+
+if(d<50){
+
+
+
+activateShield();
+
+
+
+ball.boost();
+
+
+
+beep(
+900,
+0.08,
+"triangle"
+);
+
+
+
+}
+
+else {
+    if (reflectors.length >= 10) {
+        reflectors.shift();
+    }
+
+    reflectors.push(
+        new Reflector(input.x, input.y)
+    );
+
+    updateReflectorUI();
+}
+
+
+input.click=false;
+
+
+
+}
+
+
+
+
+
+
+
+// =============================
+// METE
+// =============================
+
+
+
+class Target{
+
+
+constructor(){
+
+
+
+this.x=
+Math.random()*
+(innerWidth-100)+50;
+
+
+
+this.y=
+Math.random()*
+(innerHeight-220)+150;
+
+
+
+this.radius=15*desktopScale;
+
+
+
+
+let t=[
+
+
+["#00ff55",10],
+
+
+["#0088ff",25],
+
+
+["#cc00ff",50],
+
+
+["#ffff00",100]
+
+
+];
+
+
+
+let r=
+t[
+Math.floor(
+Math.random()*t.length
+)
+];
+
+
+
+this.color=r[0];
+
+
+this.value=r[1];
+
+
+this.move=Math.random()*Math.PI*2;
+this.startX=this.x;
+this.startY=this.y;
+
+
+
+}
+
+
+update(){
+
+this.move+=0.02;
+
+this.x=this.startX+Math.sin(this.move)*15;
+this.y=this.startY+Math.cos(this.move)*10;
+
+}
+
+
+draw(){
+
+
+
+ctx.beginPath();
+
+
+
+ctx.arc(
+
+this.x,
+
+this.y,
+
+this.radius,
+
+0,
+
+Math.PI*2
+
+);
+
+
+
+ctx.fillStyle=this.color;
+
+
+
+ctx.shadowBlur=25;
+
+
+ctx.shadowColor=this.color;
+
+
+
+ctx.fill();
+
+
+
+ctx.shadowBlur=0;
+
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+function spawnTarget(){
+
+
+
+if(targets.length < (innerWidth >= 800 ? 10 : 7))
+
+
+
+targets.push(
+
+new Target()
+
+);
+
+
+
+}
+
+
+
+
+
+
+
+// =============================
+// CRNE RUPE
+// =============================
+
+
+
+class Hole{
+
+
+constructor(){
+
+
+
+this.x=
+Math.random()*
+innerWidth;
+
+
+
+this.y=
+Math.random()*
+innerHeight;
+
+
+
+this.radius=
+(25+
+Math.random()*20)
+*
+desktopScale;
+
+this.life = 420;
+
+this.pulse = 0;
+
+// animacija pojavljivanja i nestajanja
+this.scale = 0.1;
+
+this.absorbing = false;
+
+
+
+}
+
+update(){
+
+this.life--;
+
+
+// pojavljivanje
+if(this.life > 120 && this.scale < 1){
+
+    this.scale += 0.02;
+
+}
+
+
+// nestajanje
+if(this.life <= 120){
+
+    this.scale -= 0.008;
+
+}
+
+
+if(this.scale < 0){
+
+    this.scale = 0;
+
+}
+
+}
+
+
+
+
+draw(){
+
+this.pulse += 0.08;
+
+
+
+ctx.beginPath();
+
+
+
+ctx.arc(
+
+this.x,
+
+this.y,
+
+this.radius * this.scale,
+
+0,
+
+Math.PI*2
+
+);
+
+
+
+ctx.fillStyle="#000";
+
+
+
+ctx.shadowBlur = 35 + Math.sin(this.pulse)*10;
+
+
+ctx.shadowColor="#8800ff";
+
+
+
+ctx.fill();
+
+
+
+ctx.shadowBlur=0;
+
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+function spawnHole(){
+
+
+
+if(holes.length < (innerWidth >= 800 ? 5 : 3))
+
+
+
+holes.push(
+
+new Hole()
+
+);
+
+
+
+}
+
+
+
+
+
+
+
+// =============================
+// ČESTICE
+// =============================
+
+
+
+class Particle{
+
+
+constructor(x,y,c){
+
+
+
+this.x=x;
+
+
+this.y=y;
+
+
+
+this.dx=
+(Math.random()-0.5)*8;
+
+
+
+this.dy=
+(Math.random()-0.5)*8;
+
+
+
+this.life=40;
+
+
+this.color=c;
+
+
+
+}
+
+
+
+
+
+update(){
+
+
+
+this.x+=this.dx;
+
+
+this.y+=this.dy;
+
+
+this.life--;
+
+
+
+}
+
+
+
+
+
+draw(){
+
+
+
+ctx.beginPath();
+
+
+
+ctx.arc(
+
+this.x,
+
+this.y,
+
+3*desktopScale,
+
+0,
+
+Math.PI*2
+
+);
+
+
+
+ctx.fillStyle=this.color;
+
+
+
+ctx.fill();
+
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+function explosion(x,y,c){
+
+let amount = innerWidth >= 800 ? 40 : 25;
+
+for(let i=0;i<amount;i++){
+
+particles.push(
+new Particle(
+x,
+y,
+c
+)
+);
+
+}
+
+}
+
+
+
+
+
+
+
+
+// =============================
+// SUDAR SA METAMA
+// =============================
+
+
+
+function checkTargets(){
+
+
+
+targets.forEach((t,i)=>{
+
+
+
+let dx=
+ball.x-t.x;
+
+
+let dy=
+ball.y-t.y;
+
+
+
+let d=
+Math.sqrt(
+dx*dx+dy*dy
+);
+
+
+
+
+
+
+if(
+d<
+ball.radius+t.radius
+){
+
+
+
+score+=
+t.value*combo;
+
+
+
+combo=
+Math.min(
+combo+1,
+10
+);
+
+
+
+document.getElementById("score")
+.innerHTML=score;
+
+
+
+document.getElementById("combo")
+.innerHTML="x"+combo;
+
+
+
+explosion(
+t.x,
+t.y,
+t.color
+);
+
+
+
+beep(
+800,
+0.12
+);
+
+
+
+targets.splice(i,1);
+checkWave();
+
+
+
+checkScoreLife();
+
+
+
+}
+
+
+
+});
+
+
+
+}
+
+
+
+
+
+
+
+// =============================
+// SUDAR SA CRNIM RUPAMA
+// =============================
+
+
+
+function checkHoles(){
+
+
+
+holes.forEach((h,i)=>{
+
+
+
+let dx=
+ball.x-h.x;
+
+
+let dy=
+ball.y-h.y;
+
+
+
+let d=
+Math.sqrt(
+dx*dx+dy*dy
+);
+
+
+
+// Gravitacija crne rupe
+let influence = h.radius * 4;
+
+if(d < influence && d > 1){
+
+    let force =
+(1 - d / influence) *
+(0.18 * (h.radius / 35));
+
+    ball.dx -=
+    (dx / d) * force;
+
+    ball.dy -=
+    (dy / d) * force;
+
+}
+
+
+
+
+
+if(d<h.radius){
+
+
+
+combo=1;
+
+
+ball.absorbing = true;
+
+shieldTime = 0;
+
+ball.absorbHole = h;
+
+ball.absorbRadius = d;
+
+ball.absorbAngle = Math.atan2(
+    ball.y - h.y,
+    ball.x - h.x
+);
+
+
+h.absorbing = true;
+
+
+
+}
+
+
+
+});
+
+
+
+}
+
+// =============================
+// TIPOVI BOSOVA
+// =============================
+
+
+let bossTypes=[
+
+
+{
+name:"LJUBIČASTI",
+color:"#aa00ff",
+hp:35,
+speed:0.8,
+shoot:180
+},
+
+
+{
+name:"CRVENI",
+color:"#ff0033",
+hp:25,
+speed:1.5,
+shoot:110
+},
+
+
+{
+name:"PLAVI",
+color:"#0088ff",
+hp:45,
+speed:0.8,
+shoot:160,
+shield:true
+},
+
+
+{
+name:"ZELENI",
+color:"#00ff55",
+hp:30,
+speed:1,
+shoot:130
+},
+
+
+{
+name:"ZLATNI",
+color:"#ffff00",
+hp:60,
+speed:0.7,
+shoot:120,
+reward:true
+}
+
+
+];
+
+
+
+
+
+
+
+
+// =============================
+// BOSS KLASA
+// =============================
+
+
+class Boss{
+
+
+constructor(){
+
+
+let t = bossTypes[
+Math.floor(Math.random()*bossTypes.length)
+];
+
+
+
+
+this.type=t;
+
+
+this.x=
+innerWidth/2;
+
+
+this.y=
+innerHeight/3;
+
+
+
+this.radius=38*desktopScale;
+
+
+
+this.hp=t.hp;
+
+
+this.maxHp=t.hp;
+
+
+
+this.color=t.color;
+
+
+
+this.speed=t.speed*desktopScale;
+
+
+
+this.angle=0;
+
+this.gyroAngle=0;
+
+this.teleportTimer = 0;
+this.teleporting = false;
+this.alpha = 1;
+
+this.floatAngle=0;
+this.startY=this.y;
+
+// ZELENI BOSS KRETANJE
+this.greenMoveAngle = 0;
+this.greenStartX = this.x;
+this.greenStartY = this.y;
+
+
+
+this.timer=0;
+
+
+
+this.shootDelay=t.shoot;
+
+
+
+this.hasShield=
+t.shield || false;
+
+
+
+this.shield=
+this.hasShield ?
+100:
+0;
+
+
+this.goldAttack = [
+    {active:false, x:0, y:0, dx:0, dy:0, life:0, tracking:true},
+    {active:false, x:0, y:0, dx:0, dy:0, life:0, tracking:true},
+    {active:false, x:0, y:0, dx:0, dy:0, life:0, tracking:true}
+];
+
+this.goldAttackTimer = 0;
+
+
+
+}
+
+
+
+
+
+
+
+
+update(){
+
+
+
+this.angle+=0.03;
+
+this.gyroAngle+=0.015;
+
+
+this.floatAngle+=0.04;
+
+if(this.type.name!=="LJUBIČASTI"){
+    this.y =
+    this.startY +
+    Math.sin(this.floatAngle)*15;
+}
+
+
+
+if(this.type.name==="ZELENI"){
+
+    this.greenMoveAngle += 0.03;
+
+    this.x =
+    this.greenStartX +
+    Math.sin(this.greenMoveAngle) * 80;
+
+    this.y =
+    this.greenStartY +
+    Math.cos(this.greenMoveAngle) * 120;
+
+}
+else if(this.type.name!=="LJUBIČASTI"){
+
+    this.x +=
+    Math.sin(this.angle)*
+    this.speed;
+
+}
+
+
+
+
+
+if(this.x<this.radius)
+
+this.x=this.radius;
+
+
+
+if(
+this.x>
+innerWidth-this.radius
+)
+
+this.x=
+innerWidth-this.radius;
+
+
+
+
+
+
+this.timer++;
+
+if(this.type.name==="LJUBIČASTI"){
+
+    this.teleportTimer++;
+
+    if(this.teleportTimer>=300){
+
+        this.teleportTimer=0;
+        this.teleporting=true;
+
+        explosion(
+            this.x,
+            this.y,
+            "#aa00ff"
+        );
+
+    }
+
+
+    if(this.teleporting){
+
+        let margin = this.radius + 60;
+
+this.x =
+margin + Math.random() *
+(innerWidth - margin * 2);
+
+this.y =
+100 + Math.random() *
+(innerHeight - 200);
+
+
+
+        this.x = Math.max(
+            this.radius,
+            Math.min(innerWidth-this.radius,this.x)
+        );
+
+
+        this.y = Math.max(
+            this.radius,
+            Math.min(innerHeight-this.radius,this.y)
+        );
+
+
+
+        explosion(
+            this.x,
+            this.y,
+            "#aa00ff"
+        );
+
+
+        this.teleporting=false;
+
+    }
+
+}
+
+
+if(this.type.name==="ZLATNI"){
+
+    this.goldAttackTimer++;
+
+    if(this.goldAttackTimer>=300){
+
+        this.goldAttackTimer=0;
+
+        let i=Math.floor(Math.random()*3);
+
+        this.goldAttack[i].active=true;
+        
+        let ugao =
+this.angle +
+i*(Math.PI*2/3);
+
+let udaljenost =
+this.radius+55;
+
+this.goldAttack[i].x =
+this.x +
+Math.cos(ugao)*udaljenost;
+
+this.goldAttack[i].y =
+this.y +
+Math.sin(ugao)*udaljenost;
+
+let dx = ball.x - this.goldAttack[i].x;
+let dy = ball.y - this.goldAttack[i].y;
+
+let d = Math.sqrt(dx*dx + dy*dy);
+
+this.goldAttack[i].dx = dx / d * 2;
+this.goldAttack[i].dy = dy / d * 2;
+
+this.goldAttack[i].life = 180;
+this.goldAttack[i].tracking = true;
+
+    }
+
+}
+
+
+
+if(this.type.name==="ZLATNI"){
+
+    this.goldAttack.forEach(t=>{
+
+        if(t.active){
+
+            if(t.tracking){
+
+                let dx = ball.x - t.x;
+                let dy = ball.y - t.y;
+
+                let d = Math.sqrt(dx*dx + dy*dy);
+
+                if(d > 0){
+
+                    t.dx = dx / d * 2.5;
+                    t.dy = dy / d * 2.5;
+
+                }
+
+                t.life--;
+
+                if(t.life <= 0){
+
+                    t.tracking = false;
+
+                }
+
+            }
+
+            t.x += t.dx;
+            t.y += t.dy;
+
+        }
+
+    });
+
+}
+
+
+
+if(
+this.timer>
+this.shootDelay
+){
+
+
+
+this.timer=0;
+
+
+this.fire();
+
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+
+fire(){
+
+
+
+let amount=2;
+
+
+
+if(this.type.name==="CRVENI")
+
+amount=4;
+
+
+
+if(this.type.name==="ZLATNI")
+
+amount=5;
+
+
+
+
+
+for(let i=0;i<amount;i++){
+
+
+
+let a=
+Math.random()*
+Math.PI*2;
+
+
+
+enemyBalls.push(
+
+new EnemyBall(
+
+this.x,
+
+this.y,
+
+a
+
+)
+
+);
+
+
+
+}
+
+
+
+beep(
+250,
+0.08,
+"square"
+);
+
+
+
+}
+
+
+
+
+
+
+
+
+
+hit(){
+
+
+
+if(
+this.hasShield &&
+this.shield>0
+){
+
+
+
+this.shield-=10;
+
+
+
+notify(
+"🔵 BOSS ŠTIT"
+);
+
+
+
+return;
+
+
+
+}
+
+
+
+
+
+
+this.hp--;
+
+
+
+explosion(
+
+this.x,
+
+this.y,
+
+this.color
+
+);
+
+
+
+
+
+
+if(this.hp<=0){
+
+
+
+giveBossReward();
+
+
+
+
+explosion(
+
+this.x,
+
+this.y,
+
+"#ffffff"
+
+);
+
+
+
+
+
+if(wave>=MAX_WAVE){
+
+
+
+winGame();
+
+
+
+}
+
+else{
+
+
+boss=null;
+
+
+document.getElementById("bossBar")
+.style.display="none";
+
+
+
+}
+
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+
+
+draw(){
+
+
+
+
+ctx.globalAlpha = this.alpha;
+
+
+ctx.beginPath();
+
+
+
+ctx.arc(
+
+this.x,
+
+this.y,
+
+this.radius+15,
+
+0,
+
+Math.PI*2
+
+);
+
+
+
+ctx.strokeStyle=this.color;
+
+
+
+ctx.lineWidth=5;
+
+
+
+ctx.shadowBlur=35;
+
+
+ctx.shadowColor=this.color;
+
+
+
+ctx.stroke();
+
+
+
+ctx.shadowBlur=0;
+
+
+
+
+
+
+ctx.beginPath();
+
+
+
+ctx.arc(
+
+this.x,
+
+this.y,
+
+this.radius,
+
+0,
+
+Math.PI*2
+
+);
+
+
+
+ctx.fillStyle=this.color;
+
+
+
+ctx.fill();
+
+
+
+
+// JEZGRO BOSSA
+
+// UNUTRAŠNJI ENERGETSKI PRSTEN
+
+let pulse =
+Math.sin(Date.now()*0.01)*3;
+
+
+ctx.beginPath();
+
+ctx.arc(
+this.x,
+this.y,
+this.radius*0.90 + pulse,
+0,
+Math.PI*2
+);
+
+
+ctx.strokeStyle="#ffff00";
+
+ctx.lineWidth=3;
+
+ctx.shadowBlur=25;
+
+ctx.shadowColor="#ffff00";
+
+ctx.stroke();
+
+ctx.shadowBlur=0;
+
+
+
+
+
+
+if(this.type.name==="ZLATNI"){
+    ctx.fillStyle="#000";
+}else{
+    ctx.fillStyle="white";
+}
+
+
+ctx.font="16px Arial";
+
+
+ctx.textAlign="center";
+
+
+
+ctx.fillText(
+
+this.hp+"/"+this.maxHp,
+
+this.x,
+
+this.y+5
+
+);
+
+
+
+
+
+
+if(
+this.hasShield &&
+this.shield>0
+){
+
+
+
+ctx.beginPath();
+
+
+
+ctx.arc(
+
+this.x,
+
+this.y,
+
+this.radius+25,
+
+0,
+
+Math.PI*2
+
+);
+
+
+
+ctx.strokeStyle="#00ffff";
+
+
+ctx.stroke();
+
+
+
+}
+
+
+// PLAVI BOSS - ENERGETSKI KRISTALI
+
+if(this.type.name==="PLAVI"){
+
+for(let i=0;i<8;i++){
+
+let ugao =
+this.gyroAngle +
+i*(Math.PI*2/8);
+
+
+let udaljenost =
+this.radius+45;
+
+
+let x =
+this.x +
+Math.cos(ugao)*udaljenost;
+
+
+let y =
+this.y +
+Math.sin(ugao)*udaljenost;
+
+
+
+ctx.beginPath();
+
+
+ctx.moveTo(
+x,
+y-12
+);
+
+
+ctx.lineTo(
+x+9,
+y
+);
+
+
+ctx.lineTo(
+x,
+y+20
+);
+
+
+ctx.lineTo(
+x-9,
+y
+);
+
+
+ctx.closePath();
+
+
+
+ctx.fillStyle="#00ccff";
+
+
+ctx.shadowBlur=25;
+
+ctx.shadowColor="#00ccff";
+
+
+ctx.fill();
+
+
+ctx.shadowBlur=0;
+
+
+}
+
+}
+
+
+// ROTIRAJUĆI KRUGOVI OKO BOSSA
+
+if(this.type.name==="CRVENI"){
+
+for(let i=0;i<5;i++){
+
+let ugao=
+this.angle+
+i*(Math.PI*2/5);
+
+let udaljenost=
+this.radius+35;
+
+let x=
+this.x+
+Math.cos(ugao)*
+udaljenost;
+
+let y=
+this.y+
+Math.sin(ugao)*
+udaljenost;
+
+ctx.beginPath();
+
+ctx.arc(
+x,
+y,
+6,
+0,
+Math.PI*2
+);
+
+ctx.fillStyle="#ff0033";
+
+ctx.shadowBlur=20;
+ctx.shadowColor="#ff0033";
+
+ctx.fill();
+
+ctx.shadowBlur=0;
+
+
+
+let ugaoS =
+this.angle +
+(i + 0.5) * (Math.PI*2/5);
+
+ctx.beginPath();
+
+ctx.moveTo(
+this.x + Math.cos(ugaoS-0.3)*(this.radius+20),
+this.y + Math.sin(ugaoS-0.3)*(this.radius+20)
+);
+
+ctx.lineTo(
+this.x + Math.cos(ugaoS)*(this.radius+55),
+this.y + Math.sin(ugaoS)*(this.radius+55)
+);
+
+ctx.lineTo(
+this.x + Math.cos(ugaoS+0.3)*(this.radius+20),
+this.y + Math.sin(ugaoS+0.3)*(this.radius+20)
+);
+
+ctx.closePath();
+
+ctx.fillStyle="#ff0033";
+
+ctx.shadowBlur=15;
+
+ctx.shadowColor="#ff0033";
+
+ctx.fill();
+
+ctx.shadowBlur=0;
+
+}
+
+}
+// ZELENI BOSS - ENERGETSKI PRSTEN
+
+if(this.type.name==="ZELENI"){
+
+let pulse =
+Math.sin(Date.now()*0.01)*5;
+
+
+ctx.beginPath();
+
+ctx.arc(
+this.x,
+this.y,
+this.radius+35+pulse,
+0,
+Math.PI*2
+);
+
+
+ctx.strokeStyle="#00ff55";
+
+ctx.lineWidth=4;
+
+ctx.shadowBlur=30;
+
+ctx.shadowColor="#00ff55";
+
+ctx.stroke();
+
+ctx.shadowBlur=0;
+
+
+
+// male energetske kuglice oko njega
+
+for(let i=0;i<6;i++){
+
+let ugao =
+this.angle +
+i*(Math.PI*2/6);
+
+
+let udaljenost =
+this.radius+55;
+
+
+let x =
+this.x +
+Math.cos(ugao)*udaljenost;
+
+
+let y =
+this.y +
+Math.sin(ugao)*udaljenost;
+
+
+
+ctx.beginPath();
+
+ctx.arc(
+x,
+y,
+5,
+0,
+Math.PI*2
+);
+
+
+ctx.fillStyle="#00ff55";
+
+ctx.shadowBlur=20;
+
+ctx.shadowColor="#00ff55";
+
+ctx.fill();
+
+ctx.shadowBlur=0;
+
+
+}
+
+
+
+
+}
+
+
+// LJUBIČASTI BOSS - ROTIRAJUĆI KRISTALI
+
+if(this.type.name==="LJUBIČASTI"){
+
+for(let i=0;i<6;i++){
+
+let ugao =
+this.angle +
+i*(Math.PI*2/6);
+
+let udaljenost =
+this.radius+55;
+
+
+let x =
+this.x +
+Math.cos(ugao)*udaljenost;
+
+let y =
+this.y +
+Math.sin(ugao)*udaljenost;
+
+
+
+ctx.beginPath();
+
+ctx.moveTo(
+x,
+y-12
+);
+
+ctx.lineTo(
+x+10,
+y
+);
+
+ctx.lineTo(
+x,
+y+12
+);
+
+ctx.lineTo(
+x-10,
+y
+);
+
+ctx.closePath();
+
+
+
+ctx.fillStyle="#aa00ff";
+
+ctx.shadowBlur=25;
+
+ctx.shadowColor="#aa00ff";
+
+
+ctx.fill();
+
+
+ctx.shadowBlur=0;
+
+}
+
+}
+
+// ZLATNI BOSS - TRI ROTIRAJUĆA TROUGLA
+
+if(this.type.name==="ZLATNI"){
+
+for(let i=0;i<3;i++){
+
+let ugao =
+this.angle +
+i*(Math.PI*2/3);
+
+let udaljenost =
+this.radius+55;
+
+let x =
+this.x +
+Math.cos(ugao)*udaljenost;
+
+let y =
+this.y +
+Math.sin(ugao)*udaljenost;
+
+
+ctx.beginPath();
+
+ctx.moveTo(
+x,
+y-12
+);
+
+ctx.lineTo(
+x+12,
+y+12
+);
+
+ctx.lineTo(
+x-12,
+y+12
+);
+
+ctx.closePath();
+
+
+ctx.fillStyle="#ffff00";
+
+ctx.shadowBlur=25;
+ctx.shadowColor="#ffff00";
+
+ctx.fill();
+
+ctx.shadowBlur=0;
+
+
+
+
+// DODATNA 3 CRVENA TROUGLA IZMEĐU
+
+for(let i=0;i<3;i++){
+
+let ugao =
+this.angle +
+(i+0.5)*(Math.PI*2/3);
+
+let udaljenost =
+this.radius+55;
+
+let x =
+this.x +
+Math.cos(ugao)*udaljenost;
+
+let y =
+this.y +
+Math.sin(ugao)*udaljenost;
+
+
+ctx.beginPath();
+
+ctx.moveTo(
+x,
+y+12
+);
+
+ctx.lineTo(
+x+12,
+y-12
+);
+
+ctx.lineTo(
+x-12,
+y-12
+);
+
+ctx.closePath();
+
+
+ctx.fillStyle="#ff0033";
+
+ctx.shadowBlur=25;
+ctx.shadowColor="#ff0033";
+
+ctx.fill();
+
+ctx.shadowBlur=0;
+
+}
+
+
+
+// ZLATNE NAPADAČKE KUGLE
+
+this.goldAttack.forEach(t=>{
+
+if(t.active){
+
+ctx.beginPath();
+
+ctx.arc(
+t.x,
+t.y,
+8,
+0,
+Math.PI*2
+);
+
+ctx.fillStyle="#ffaa00";
+
+ctx.shadowBlur=25;
+ctx.shadowColor="#ffaa00";
+
+ctx.fill();
+
+ctx.shadowBlur=0;
+
+}
+
+});
+
+
+}
+
+ctx.globalAlpha = 1;
+
+}
+
+}
+
+}
+
+
+
+
+
+
+
+
+function spawnBoss(){
+
+
+
+boss=
+new Boss();
+
+
+
+document.getElementById("bossBar")
+.style.display="block";
+
+
+
+notify(
+"⚠ BOSS: "+
+boss.type.name
+);
+
+
+
+}
+
+// =============================
+// BOSS ENERGETSKE KUGLE
+// =============================
+
+
+class EnemyBall{
+
+
+constructor(x,y,angle){
+
+
+
+this.x=x;
+
+
+this.y=y;
+
+
+
+this.radius=8*desktopScale;
+
+
+
+this.speed=3*desktopScale;
+
+
+
+this.dx=
+Math.cos(angle)*
+this.speed;
+
+
+
+this.dy=
+Math.sin(angle)*
+this.speed;
+
+
+
+this.life=180;
+
+
+
+}
+
+
+
+
+update(){
+
+
+
+this.x+=this.dx;
+
+
+this.y+=this.dy;
+
+
+
+this.life--;
+
+
+
+}
+
+
+
+
+draw(){
+
+
+
+ctx.beginPath();
+
+
+
+ctx.arc(
+
+this.x,
+
+this.y,
+
+this.radius,
+
+0,
+
+Math.PI*2
+
+);
+
+
+
+ctx.fillStyle="#00ffff";
+
+
+ctx.shadowBlur=20;
+
+
+ctx.shadowColor="#00ffff";
+
+
+
+ctx.fill();
+
+
+
+ctx.shadowBlur=0;
+
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+
+// =============================
+// SUDAR SA BOSS KUGLAMA
+// =============================
+
+
+function checkEnemyBalls(){
+
+
+
+enemyBalls.forEach((e,i)=>{
+
+
+
+e.update();
+
+
+
+
+
+let dx=
+ball.x-e.x;
+
+
+let dy=
+ball.y-e.y;
+
+
+
+let d=
+Math.sqrt(
+dx*dx+dy*dy
+);
+
+
+
+
+
+
+
+if(
+d<
+ball.radius+e.radius
+){
+
+
+
+if(shieldTime>0){
+
+
+
+shieldTime=0;
+
+
+
+explosion(
+e.x,
+e.y,
+"#00ffff"
+);
+
+
+
+notify(
+"🛡 ŠTIT BLOKIRAO"
+);
+
+
+
+}
+
+else{
+
+
+
+lives--;
+
+
+
+document.getElementById("life")
+.innerHTML=lives;
+
+
+
+notify(
+"❤️ IZGUBLJEN ŽIVOT"
+);
+
+
+
+ball.reset();
+
+
+
+if(lives<=0)
+
+endGame();
+
+
+
+}
+
+
+
+
+
+enemyBalls.splice(i,1);
+
+
+
+}
+
+
+
+
+
+
+if(e.life<=0)
+
+
+enemyBalls.splice(i,1);
+
+
+
+});
+
+
+
+}
+
+
+
+function checkGoldAttack(){
+
+if(!boss)
+return;
+
+boss.goldAttack.forEach(t=>{
+
+if(!t.active)
+return;
+
+let dx = ball.x - t.x;
+let dy = ball.y - t.y;
+
+let d = Math.sqrt(dx*dx + dy*dy);
+
+if(d < ball.radius + 8){
+
+    if(shieldTime>0){
+
+        shieldTime = 0;
+
+        notify("🛡 ŠTIT BLOKIRAO");
+
+    }else{
+
+        lives--;
+
+        document.getElementById("life").innerHTML = lives;
+
+        notify("🟡 ZLATNI NAPAD");
+
+        ball.reset();
+
+        if(lives<=0)
+            endGame();
+
+    }
+
+    t.active = false;
+
+}
+
+});
+
+}
+
+
+
+
+
+// =============================
+// IGRAČEV ŠTIT
+// =============================
+
+
+
+function activateShield(){
+
+
+
+shieldTime=300;
+
+
+
+notify(
+"🛡 ŠTIT AKTIVAN"
+);
+
+
+
+beep(
+900,
+0.2,
+"triangle"
+);
+
+
+
+}
+
+
+
+
+
+
+
+function drawShield(){
+
+
+
+if(shieldTime<=0)
+
+return;
+
+
+
+
+
+ctx.beginPath();
+
+
+
+ctx.arc(
+
+ball.x,
+
+ball.y,
+
+ball.radius+30,
+
+0,
+
+Math.PI*2
+
+);
+
+
+
+ctx.strokeStyle=
+"#00ffff";
+
+
+
+ctx.lineWidth=4;
+
+
+
+ctx.shadowBlur=30;
+
+
+ctx.shadowColor="#00ffff";
+
+
+
+ctx.stroke();
+
+
+
+ctx.shadowBlur=0;
+
+
+
+}
+
+
+
+
+
+
+
+
+
+// =============================
+// BOSS TRAKA
+// =============================
+
+
+
+function updateBossBar(){
+
+
+
+if(!boss)
+
+return;
+
+
+
+
+let p=
+(boss.hp/
+boss.maxHp)*100;
+
+
+
+document.getElementById("bossLife")
+.style.width=
+p+"%";
+
+
+
+}
+
+// =============================
+// SUDAR SA BOSSOM
+// =============================
+
+
+function checkBoss(){
+
+
+
+if(!boss)
+
+return;
+
+
+
+
+let dx=
+ball.x-boss.x;
+
+
+let dy=
+ball.y-boss.y;
+
+
+
+let d=
+Math.sqrt(
+dx*dx+dy*dy
+);
+
+
+
+
+
+if(
+d<
+ball.radius+boss.radius
+){
+
+
+
+boss.hit();
+
+
+
+let a=
+Math.atan2(
+dy,
+dx
+);
+
+
+
+ball.dx=
+Math.cos(a)*
+ball.speed;
+
+
+
+ball.dy=
+Math.sin(a)*
+ball.speed;
+
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+
+
+// =============================
+// UPDATE IGRE
+// =============================
+
+
+function update(){
+
+
+
+if(!playing || paused)
+
+return;
+
+
+
+
+
+handleInput();
+
+
+
+ball.update();
+
+
+
+checkReflectors();
+
+
+checkTargets();
+
+
+checkHoles();
+
+
+checkBoss();
+
+
+checkEnemyBalls();
+
+
+
+checkGoldAttack();
+
+
+
+
+
+if(boss)
+
+boss.update();
+
+
+
+
+
+
+// smanjenje štita
+
+if(shieldTime>0)
+
+shieldTime--;
+
+
+
+
+
+
+// reflektori
+
+reflectors.forEach(r=>{
+
+r.update();
+
+});
+
+
+
+reflectors=
+reflectors.filter(
+r=>r.life>0
+);
+
+
+
+updateReflectorUI();
+
+
+
+
+
+// čestice
+
+particles.forEach(p=>{
+
+p.update();
+
+});
+
+
+
+particles=
+particles.filter(
+p=>p.life>0
+);
+
+
+
+
+
+
+
+
+// nove mete
+
+targets.forEach(t=>{
+
+t.update();
+
+});
+
+if(Math.random() < (innerWidth >= 800 ? 0.035 : 0.02))
+
+spawnTarget();
+
+
+
+
+
+
+// crne rupe
+
+if(Math.random()<0.002)
+
+spawnHole();
+
+holes.forEach(h=>{
+
+h.update();
+
+});
+
+
+holes =
+holes.filter(h=>h.life>0);
+
+
+
+
+
+
+
+// BOSS SVAKIH 5 TALASA
+
+
+if(
+!boss &&
+wave%5===0 &&
+wave!==lastBossWave
+){
+
+
+
+lastBossWave=wave;
+
+
+
+spawnBoss();
+
+
+
+}
+
+
+
+
+
+
+
+updateBossBar();
+
+
+
+}
+
+
+
+
+
+
+
+// =============================
+// POVEĆANJE TALASA
+// =============================
+
+
+function increaseWave(){
+
+    wave++;
+
+    if(wave > MAX_WAVE)
+        wave = MAX_WAVE;
+
+    document.getElementById("wave").innerHTML = wave;
+
+}
+
+// =============================
+// CRTANJE IGRE
+// =============================
+
+
+function drawNebula(){
+
+nebulae.forEach(n=>{
+
+let g=ctx.createRadialGradient(
+n.x,
+n.y,
+0,
+n.x,
+n.y,
+n.r
+);
+
+
+g.addColorStop(0,"rgba(0,150,255,"+n.a+")");
+g.addColorStop(1,"rgba(0,0,0,0)");
+
+
+ctx.fillStyle=g;
+
+
+ctx.beginPath();
+
+ctx.arc(
+n.x,
+n.y,
+n.r,
+0,
+Math.PI*2
+);
+
+ctx.fill();
+
+
+});
+
+}
+
+function draw(){
+
+
+
+ctx.clearRect(
+
+0,
+
+0,
+
+innerWidth,
+
+innerHeight
+
+);
+
+drawNebula();
+
+drawStars();
+
+updateShootingStars();
+
+
+
+
+
+// crne rupe
+
+holes.forEach(h=>{
+
+h.draw();
+
+});
+
+
+
+
+
+// mete
+
+targets.forEach(t=>{
+
+t.draw();
+
+});
+
+
+
+
+
+// reflektori
+
+reflectors.forEach(r=>{
+
+r.draw();
+
+});
+
+
+
+
+
+// čestice
+
+particles.forEach(p=>{
+
+p.draw();
+
+});
+
+
+
+
+
+
+// boss kugle
+
+enemyBalls.forEach(e=>{
+
+e.draw();
+
+});
+
+
+
+
+
+// boss
+
+if(boss)
+
+boss.draw();
+
+
+
+
+
+
+// štit
+
+drawShield();
+
+
+
+
+
+
+// lopta
+
+ball.draw();
+
+
+
+}
+
+
+
+
+
+
+
+
+// =============================
+// POBEDA
+// =============================
+
+
+
+function winGame(){
+
+
+
+playing=false;
+
+
+
+document.getElementById("winScore")
+.innerHTML=
+
+
+"⭐ Skor: "+score+
+"<br>🌊 Talas: "+wave+
+"<br><br>Čestitamo!";
+
+
+
+hud.style.display="none";
+
+
+
+document.getElementById("bossBar")
+.style.display="none";
+
+
+
+document.getElementById("win")
+.style.display="block";
+
+
+
+}
+
+
+
+
+
+
+// =============================
+// KRAJ IGRE
+// =============================
+
+
+
+function endGame(){
+
+
+
+playing=false;
+
+
+
+
+if(!continueUsed){
+
+    save("continueGame",{
+        score:score,
+        lives:lives,
+        combo:combo,
+        wave:wave
+    });
+
+}
+
+
+
+let best=
+load(
+"bestScore",
+0
+);
+
+
+
+if(score>best){
+
+
+
+save(
+"bestScore",
+score
+);
+
+
+
+}
+
+
+
+
+
+document.getElementById("finalScore")
+.innerHTML=
+
+
+"Skor: "+score+
+"<br>Rekord: "+
+load(
+"bestScore",
+0
+);
+
+
+
+
+hud.style.display="none";
+
+
+
+gameover.style.display="block";
+
+
+
+}
+
+// =============================
+// ELEMENTI
+// =============================
+
+
+const menu =
+document.getElementById("menu");
+
+
+const hud =
+document.getElementById("hud");
+
+
+const gameover =
+document.getElementById("gameover");
+
+
+const win =
+document.getElementById("win");
+
+const help =
+document.getElementById("help");
+
+
+
+
+
+
+
+// =============================
+// START IGRE
+// =============================
+
+
+document.getElementById("play")
+.onclick=function(){
+
+
+reflectors = [];
+updateReflectorUI();
+
+
+
+if(audioCtx &&
+audioCtx.state==="suspended") {
+
+audioCtx.resume();
+
+}
+
+
+
+
+playing=true;
+
+
+
+menu.style.display="none";
+
+
+hud.style.display="flex";
+
+
+gameover.style.display="none";
+
+
+win.style.display="none";
+
+
+
+
+
+score=0;
+
+
+lives=3;
+
+
+combo=1;
+
+
+wave=1;
+
+
+continueUsed=false;
+
+
+document.getElementById("continueBtn").style.display="block";
+
+
+
+nextLifeScore=5000;
+
+
+
+lastBossWave=0;
+
+
+
+boss=null;
+
+document.getElementById("bossBar")
+.style.display="none";
+
+
+
+enemyBalls=[];
+
+
+
+shieldTime=0;
+
+
+
+targets=[];
+
+
+holes=[];
+
+
+reflectors=[];
+
+
+particles=[];
+
+
+
+
+
+ball.reset();
+
+
+
+
+
+
+
+document.getElementById("score")
+.innerHTML=0;
+
+
+
+document.getElementById("life")
+.innerHTML=3;
+
+
+
+document.getElementById("combo")
+.innerHTML="x1";
+
+
+
+document.getElementById("wave")
+.innerHTML=1;
+
+
+
+
+
+
+notify(
+"✨ POČETAK IGRE"
+);
+
+
+
+beep(
+700,
+0.2
+);
+
+
+
+};
+
+
+
+
+
+
+
+
+
+
+// =============================
+// RESTART
+// =============================
+
+
+document.getElementById("restart")
+.onclick=function(){
+
+
+
+document.getElementById("play")
+.click();
+
+
+
+};   
+
+document.getElementById("continueBtn")
+.onclick=function(){
+
+let data = load("continueGame", null);
+
+if(data && !continueUsed){
+
+    score = data.score;
+    lives = 3;
+    combo = data.combo;
+    wave = data.wave;
+
+    continueUsed = true;
+    
+    save("continueGame", null);
+    
+    
+    document.getElementById("continueBtn").style.display="none";
+    
+    
+    
+
+    playing = true;
+
+    gameover.style.display="none";
+    hud.style.display="flex";
+
+    document.getElementById("score").innerHTML=score;
+    document.getElementById("life").innerHTML=lives;
+    document.getElementById("combo").innerHTML="x"+combo;
+    document.getElementById("wave").innerHTML=wave;
+
+    notify("⚡ DRUGA ŠANSA");
+    
+    
+ball.reset();
+}
+
+};
+
+
+
+
+
+
+
+
+document.getElementById("winRestart")
+.onclick=function(){
+
+
+
+document.getElementById("play")
+.click();
+
+
+
+};
+
+
+
+
+
+
+
+
+// =============================
+// POVRATAK U MENI
+// =============================
+
+
+
+document.getElementById("menuBtn")
+.onclick=function(){
+
+
+
+playing=false;
+
+
+
+gameover.style.display="none";
+
+
+menu.style.display="block";
+
+
+hud.style.display="none";
+
+
+
+};
+
+
+
+
+
+document.getElementById("winMenu")
+.onclick=function(){
+
+
+
+playing=false;
+
+
+
+win.style.display="none";
+
+
+menu.style.display="block";
+
+
+hud.style.display="none";
+
+
+
+};
+
+
+
+
+
+
+
+
+
+// =============================
+// ZVUK
+// =============================
+
+
+
+document.getElementById("settingsBtn")
+.onclick=function(){
+
+
+
+soundEnabled=
+!soundEnabled;
+
+
+
+save(
+"sound",
+soundEnabled
+);
+
+
+
+notify(
+
+soundEnabled?
+
+"🔊 Zvuk uključen":
+
+"🔇 Zvuk isključen"
+
+);
+
+
+
+};
+
+
+
+
+
+
+
+// =============================
+// REKORD
+// =============================
+
+
+
+document.getElementById("recordBtn")
+.onclick=function(){
+
+
+
+notify(
+
+"🏆 Rekord: "+
+load(
+"bestScore",
+0
+)
+
+);
+
+
+
+};
+
+document.getElementById("helpBtn")
+.onclick=function(){
+
+menu.style.display="none";
+
+help.style.display="block";
+
+};
+
+// =============================
+// TALAS SISTEM
+// =============================
+
+
+let targetCount=0;
+
+
+
+function checkWave(){
+
+
+
+targetCount++;
+
+
+
+if(targetCount>=30){
+
+
+
+targetCount=0;
+
+
+
+increaseWave();
+
+
+
+notify(
+"🌊 TALAS "+wave
+);
+
+
+
+}
+
+
+
+}
+
+
+
+
+
+
+
+
+// =============================
+// ANIMACIJA
+// =============================
+
+
+
+function updateReflectorUI() {
+    let el = document.getElementById("reflectorCount");
+    el.innerHTML = reflectors.length + "/10";
+    // Vizuelno upozorenje kad je puno
+    el.style.color = (reflectors.length >= 10) ? "#ff0033" : "#ffffff";
+}
+
+
+document.getElementById("closeHelp")
+.onclick=function(){
+
+help.style.display="none";
+
+menu.style.display="block";
+
+};
+
+
+let stars=[];
+
+for(let i=0;i<(innerWidth>=800 ? 120 : 60);i++){
+
+stars.push({
+
+x:Math.random()*innerWidth,
+y:Math.random()*innerHeight,
+size:Math.random()*2+1,
+speed:Math.random()*0.5+0.2
+
+});
+
+}
+
+
+function drawStars(){
+
+ctx.fillStyle="rgba(255,255,255,0.7)";
+
+stars.forEach(s=>{
+
+ctx.beginPath();
+
+ctx.arc(
+s.x,
+s.y,
+s.size,
+0,
+Math.PI*2
+);
+
+ctx.fill();
+
+
+s.y+=s.speed;
+
+
+if(s.y>innerHeight){
+
+s.y=0;
+s.x=Math.random()*innerWidth;
+
+}
+
+
+});
+
+}
+
+let shootingStars=[];
+let nextStar=600; 
+
+function updateShootingStars(){
+
+nextStar--;
+
+if(nextStar<=0){
+
+shootingStars.push({
+
+x:Math.random()*innerWidth,
+y:-20,
+dx:8+Math.random()*4,
+dy:4+Math.random()*2,
+life:120
+
+});
+
+nextStar=600+Math.random()*600;
+
+}
+
+shootingStars.forEach((s,i)=>{
+
+ctx.beginPath();
+
+ctx.moveTo(s.x,s.y);
+
+ctx.lineTo(s.x-s.dx*3,s.y-s.dy*3);
+
+ctx.strokeStyle="rgba(255,255,255,0.9)";
+ctx.lineWidth=2;
+ctx.stroke();
+
+s.x+=s.dx;
+s.y+=s.dy;
+s.life--;
+
+if(s.life<=0){
+
+shootingStars.splice(i,1);
+
+}
+
+});
+
+}
+
+function loop(){
+
+
+
+update();
+
+
+
+draw();
+
+
+
+requestAnimationFrame(
+loop
+);
+
+
+
+}
+
+
+
+loop();
+
+</script>
+
+
+</body>
+
+
+</html>
