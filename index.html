@@ -2648,6 +2648,8 @@ this.greenStartY = this.y;
 
 this.timer=0;
 
+this.hitCooldown = 0;
+
 
 
 this.shootDelay=t.shoot;
@@ -2685,6 +2687,10 @@ this.goldAttackTimer = 0;
 
 
 update(){
+
+if(this.hitCooldown > 0){
+    this.hitCooldown--;
+}
 
 
 
@@ -4247,12 +4253,18 @@ dx*dx+dy*dy
 
 if(
 d<
-ball.radius+boss.radius
+ball.radius+boss.radius &&
+boss.hitCooldown <= 0
 ){
 
 
 
 boss.hit();
+
+if(!boss)
+    return;
+
+boss.hitCooldown = 15;
 
 
 
